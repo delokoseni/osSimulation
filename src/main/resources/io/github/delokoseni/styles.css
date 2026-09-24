@@ -1,0 +1,72 @@
+.root {
+    -fx-background-color: #D9D9D9;
+    -fx-font-family: "Century Gothic";
+    -fx-font-size: 14px;
+}
+
+.main-title {
+    -fx-text-fill: #3333FF;
+    -fx-font-size: 24px;
+    -fx-font-weight: bold;
+}
+
+.subtitle {
+    -fx-text-fill: #3333FF;
+    -fx-font-size: 14px;
+}
+
+.section-title {
+    -fx-text-fill: #3333FF;
+    -fx-font-size: 20px;
+    -fx-font-weight: bold;
+}
+
+.label-title {
+    -fx-font-weight: bold;
+}
+
+.text-area {
+    -fx-background-color: #FFFFFF;
+    -fx-border-color: #3333FF;
+}
+
+.text-area .content {
+    -fx-background-color: #FFFFFF;
+}
+
+.text-field {
+    -fx-background-color: #FFFFFF;
+}
+
+.button {
+    -fx-background-color: #FFFFFF;
+    -fx-text-fill: #3333FF;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-border-color: #3333FF;
+    -fx-border-radius: 4px;
+    -fx-background-radius: 4px;
+}
+
+.button:hover {
+    -fx-background-color: #EEEEFF;
+}
+
+.start-button {
+    -fx-font-size: 17px;
+    -fx-font-weight: bold;
+    -fx-padding: 12px;
+}
+
+.hint {
+    -fx-text-fill: #666666;
+    -fx-alignment: center;
+}
+
+.graph-placeholder {
+    -fx-background-color: #F0F0F0;
+    -fx-border-color: #CCCCCC;
+    -fx-text-fill: #666666;
+    -fx-min-height: 150px;
+    -fx-alignment: center;
+}

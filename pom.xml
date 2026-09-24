@@ -31,6 +31,13 @@
             <version>${javafx.version}</version>
         </dependency>
 
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.18.42</version>
+            <scope>provided</scope>
+        </dependency>
+
     </dependencies>
 
     <build>
@@ -39,11 +46,8 @@
                 <groupId>org.openjfx</groupId>
                 <artifactId>javafx-maven-plugin</artifactId>
                 <version>0.0.8</version>
-
                 <configuration>
-                    <mainClass>
-                        io.github.delokoseni.Main
-                    </mainClass>
+                    <mainClass>io.github.delokoseni.Main</mainClass>
                 </configuration>
             </plugin>
         </plugins>

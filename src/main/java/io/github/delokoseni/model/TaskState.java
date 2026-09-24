@@ -1,4 +1,9 @@
 package io.github.delokoseni.model;
 
-public class TaskState {
+public enum TaskState {
+    NEW,
+    READY,
+    RUNNING,
+    WAITING,
+    TERMINATED
 }

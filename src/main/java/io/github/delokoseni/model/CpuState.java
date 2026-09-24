@@ -1,4 +1,6 @@
 package io.github.delokoseni.model;
 
-public class CpuState {
+public enum CpuState {
+    IDLE,
+    BUSY
 }
