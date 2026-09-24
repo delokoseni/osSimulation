@@ -1,0 +1,19 @@
+{
+  "tasks": [
+    {
+      "num": 1,
+      "type": "MATH",
+      "memory": 1
+    },
+    {
+      "num": 2,
+      "type": "INOUT",
+      "memory": 1
+    },
+    {
+      "num": 3,
+      "type": "MATH",
+      "memory": 100
+    }
+  ]
+}
