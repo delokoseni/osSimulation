@@ -14,7 +14,7 @@ public class Main extends Application {
                 getClass().getResource("/io/github/delokoseni/main-view.fxml")
         );
 
-        Scene scene = new Scene(loader.load(), 1400, 850);
+        Scene scene = new Scene(loader.load(), 1400, 700);
 
         scene.getStylesheets().add(
                 getClass().getResource(

@@ -9,27 +9,6 @@
             fx:controller="io.github.delokoseni.controller.MainController"
             styleClass="root">
 
-    <!-- Верхняя часть -->
-    <top>
-        <VBox alignment="CENTER" spacing="8">
-            <padding>
-                <Insets top="20" right="20" bottom="20" left="20"/>
-            </padding>
-
-            <Label text="МОДЕЛИРОВАНИЕ РАБОТЫ"
-                   styleClass="main-title"/>
-
-            <Label text="ОПЕРАЦИОННОЙ СИСТЕМЫ"
-                   styleClass="main-title"/>
-
-            <Label text="В ПАКЕТНОМ РЕЖИМЕ"
-                   styleClass="main-title"/>
-
-            <Label text="С ИСПОЛЬЗОВАНИЕМ ПРИНЦИПА КЛАССИЧЕСКОГО МУЛЬТИПРОГРАММИРОВАНИЯ"
-                   styleClass="subtitle"/>
-        </VBox>
-    </top>
-
     <center>
         <GridPane hgap="15"
                   vgap="15">
@@ -53,31 +32,78 @@
                 <TextArea fx:id="outputArea"
                           editable="false"
                           wrapText="true"
-                          VBox.vgrow="ALWAYS"
+                          prefHeight="220"
+                          VBox.vgrow="SOMETIMES"
                           promptText="Здесь будет отображаться ход моделирования..."/>
 
-                <!-- Заглушки графиков -->
                 <GridPane hgap="10"
                           vgap="10"
-                          VBox.vgrow="NEVER">
+                          VBox.vgrow="ALWAYS">
 
                     <Label text="График 1"
                            styleClass="graph-placeholder"
-                           GridPane.columnIndex="0"/>
+                           GridPane.columnIndex="0"
+                           GridPane.rowIndex="0"
+                           GridPane.hgrow="ALWAYS"
+                           GridPane.vgrow="ALWAYS"
+                           maxWidth="Infinity"
+                           maxHeight="Infinity"/>
 
                     <Label text="График 2"
                            styleClass="graph-placeholder"
-                           GridPane.columnIndex="1"/>
+                           GridPane.columnIndex="1"
+                           GridPane.rowIndex="0"
+                           GridPane.hgrow="ALWAYS"
+                           GridPane.vgrow="ALWAYS"
+                           maxWidth="Infinity"
+                           maxHeight="Infinity"/>
 
                     <Label text="График 3"
                            styleClass="graph-placeholder"
-                           GridPane.columnIndex="2"/>
+                           GridPane.columnIndex="2"
+                           GridPane.rowIndex="0"
+                           GridPane.hgrow="ALWAYS"
+                           GridPane.vgrow="ALWAYS"
+                           maxWidth="Infinity"
+                           maxHeight="Infinity"/>
+
+                    <Label text="График 4"
+                           styleClass="graph-placeholder"
+                           GridPane.columnIndex="0"
+                           GridPane.rowIndex="1"
+                           GridPane.hgrow="ALWAYS"
+                           GridPane.vgrow="ALWAYS"
+                           maxWidth="Infinity"
+                           maxHeight="Infinity"/>
+
+                    <Label text="График 5"
+                           styleClass="graph-placeholder"
+                           GridPane.columnIndex="1"
+                           GridPane.rowIndex="1"
+                           GridPane.hgrow="ALWAYS"
+                           GridPane.vgrow="ALWAYS"
+                           maxWidth="Infinity"
+                           maxHeight="Infinity"/>
+
+                    <Label text="График 6"
+                           styleClass="graph-placeholder"
+                           GridPane.columnIndex="2"
+                           GridPane.rowIndex="1"
+                           GridPane.hgrow="ALWAYS"
+                           GridPane.vgrow="ALWAYS"
+                           maxWidth="Infinity"
+                           maxHeight="Infinity"/>
 
                     <columnConstraints>
-                        <ColumnConstraints percentWidth="33"/>
-                        <ColumnConstraints percentWidth="33"/>
-                        <ColumnConstraints percentWidth="34"/>
+                        <ColumnConstraints percentWidth="33.3333"/>
+                        <ColumnConstraints percentWidth="33.3333"/>
+                        <ColumnConstraints percentWidth="33.3334"/>
                     </columnConstraints>
+
+                    <rowConstraints>
+                        <RowConstraints percentHeight="50"/>
+                        <RowConstraints percentHeight="50"/>
+                    </rowConstraints>
 
                 </GridPane>
 
@@ -171,10 +197,6 @@
                         onAction="#startSimulation"
                         styleClass="start-button"
                         maxWidth="Infinity"/>
-
-                <Label text="Для выхода из программы нажмите ESC"
-                       styleClass="hint"
-                       wrapText="true"/>
 
             </VBox>
 
