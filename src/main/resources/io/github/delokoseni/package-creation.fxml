@@ -23,14 +23,14 @@
                                    HBox.hgrow="ALWAYS"/>
                     </HBox>
 
+                    <Label text="Автоматически создать пакет"
+                           styleClass="section-title"/>
+
                     <HBox spacing="10" alignment="CENTER_LEFT">
                         <Label text="Количество задач"/>
                         <Spinner fx:id="taskCountSpinner"
                                  prefWidth="110"/>
                     </HBox>
-
-                    <Label text="Автоматически создать пакет"
-                           styleClass="section-title"/>
 
                     <HBox spacing="10">
                         <Button text="Вычислительный"

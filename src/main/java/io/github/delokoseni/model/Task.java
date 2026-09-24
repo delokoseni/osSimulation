@@ -7,7 +7,7 @@ import lombok.Setter;
 @Setter
 public class Task {
 
-    private final int id;
+    private int id;
 
     private final TaskType type;
 
