@@ -1,12 +1,17 @@
 package io.github.delokoseni.controller;
 
 import io.github.delokoseni.model.TaskPackage;
-import io.github.delokoseni.simulation.TaskGenerator;
+import io.github.delokoseni.model.TaskType;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.stage.FileChooser;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
 
 import java.io.File;
+import java.io.IOException;
 
 public class MainController {
 
@@ -95,11 +100,52 @@ public class MainController {
 
     @FXML
     private void createPackage() {
+        try {
+            FXMLLoader loader = new FXMLLoader(
+                    getClass().getResource(
+                            "/io/github/delokoseni/package-creation.fxml"
+                    )
+            );
+            Stage stage = new Stage();
+            stage.initOwner(packageNameField.getScene().getWindow());
+            stage.initModality(Modality.WINDOW_MODAL);
+            stage.setTitle("Создание пакета");
+            Scene scene = new Scene(loader.load(), 620, 720);
+            scene.getStylesheets().add(
+                    getClass().getResource(
+                            "/io/github/delokoseni/styles.css"
+                    ).toExternalForm()
+            );
+            stage.setScene(scene);
 
-        // Пока просто проверяем, что кнопка работает.
-        showInformation(
-                "Создание пакета",
-                "Здесь будет окно создания нового пакета."
+            PackageCreationController controller = loader.getController();
+            controller.setOnPackageSaved(this::setCurrentPackage);
+            stage.showAndWait();
+        } catch (IOException exception) {
+            showInformation(
+                    "Ошибка",
+                    "Не удалось открыть окно создания пакета: "
+                            + exception.getMessage()
+            );
+        }
+    }
+
+    private void setCurrentPackage(String name, TaskPackage taskPackage) {
+        currentPackage = taskPackage;
+        packageNameField.setText(name);
+        int cpuTasks = (int) taskPackage.getTasks().stream()
+                .filter(task -> task.getType() == TaskType.CPU_BOUND)
+                .count();
+        int ioTasks = taskPackage.getTaskCount() - cpuTasks;
+
+        cpuTaskCountLabel.setText(String.valueOf(cpuTasks));
+        ioTaskCountLabel.setText(String.valueOf(ioTasks));
+        packageTypeLabel.setText(
+                cpuTasks == ioTasks
+                        ? "Сбалансированный"
+                        : cpuTasks > ioTasks
+                        ? "Вычислительный"
+                        : "Ввод/вывод"
         );
     }
 

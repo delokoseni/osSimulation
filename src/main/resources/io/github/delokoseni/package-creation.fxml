@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="io.github.delokoseni.controller.PackageCreationController">
+    <center>
+        <ScrollPane fitToWidth="true"
+                    hbarPolicy="NEVER">
+            <content>
+                <VBox spacing="12">
+                    <padding>
+                        <Insets top="20" right="20" bottom="20" left="20"/>
+                    </padding>
+
+                    <HBox spacing="10" alignment="CENTER_LEFT">
+                        <Label text="Имя пакета"/>
+                        <TextField fx:id="packageNameField"
+                                   promptText="Введите имя пакета"
+                                   HBox.hgrow="ALWAYS"/>
+                    </HBox>
+
+                    <HBox spacing="10" alignment="CENTER_LEFT">
+                        <Label text="Количество задач"/>
+                        <Spinner fx:id="taskCountSpinner"
+                                 prefWidth="110"/>
+                    </HBox>
+
+                    <Label text="Автоматически создать пакет"
+                           styleClass="section-title"/>
+
+                    <HBox spacing="10">
+                        <Button text="Вычислительный"
+                                onAction="#createMathPackage"
+                                HBox.hgrow="ALWAYS"/>
+                        <Button text="Сбалансированный"
+                                onAction="#createBalancedPackage"
+                                HBox.hgrow="ALWAYS"/>
+                        <Button text="Ввод/вывод"
+                                onAction="#createInOutPackage"
+                                HBox.hgrow="ALWAYS"/>
+                    </HBox>
+
+                    <Label text="Вручную создать пакет"
+                           styleClass="section-title"/>
+
+                    <HBox spacing="10" alignment="CENTER_LEFT">
+                        <Label text="Тип задачи:"/>
+                        <ComboBox fx:id="taskTypeComboBox"
+                                  prefWidth="140"/>
+                    </HBox>
+
+                    <HBox spacing="10" alignment="CENTER_LEFT">
+                        <Label text="Память (МБ)"/>
+                        <Spinner fx:id="memorySpinner"
+                                 prefWidth="110"/>
+                    </HBox>
+
+                    <Button text="Добавить задачу"
+                            onAction="#addTask"
+                            maxWidth="Infinity"/>
+
+                    <TableView fx:id="tasksTable"
+                               prefHeight="260"
+                               VBox.vgrow="ALWAYS">
+                        <columns>
+                            <TableColumn fx:id="numberColumn"
+                                         text="Номер"
+                                         prefWidth="100"/>
+                            <TableColumn fx:id="typeColumn"
+                                         text="Тип"
+                                         prefWidth="180"/>
+                            <TableColumn fx:id="memoryColumn"
+                                         text="Память"
+                                         prefWidth="140"/>
+                        </columns>
+                    </TableView>
+
+                    <HBox spacing="10" alignment="CENTER_RIGHT">
+                        <Button text="Сохранить"
+                                onAction="#savePackage"
+                                defaultButton="true"/>
+                        <Button text="Отмена"
+                                onAction="#cancel"
+                                cancelButton="true"/>
+                    </HBox>
+                </VBox>
+            </content>
+        </ScrollPane>
+    </center>
+</BorderPane>
