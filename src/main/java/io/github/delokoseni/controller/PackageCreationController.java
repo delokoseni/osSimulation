@@ -25,6 +25,7 @@ import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import java.util.function.BiConsumer;
 
 public class PackageCreationController {
@@ -55,6 +56,7 @@ public class PackageCreationController {
 
     private final List<Task> tasks = new ArrayList<>();
     private BiConsumer<String, TaskPackage> onPackageSaved;
+    private final Random random = new Random();
 
     @FXML
     private void initialize() {
@@ -112,12 +114,14 @@ public class PackageCreationController {
     @FXML
     private void createBalancedPackage() {
         int taskCount = taskCountSpinner.getValue();
-        int memory = memorySpinner.getValue();
         tasks.clear();
         for (int index = 1; index <= taskCount; index++) {
             TaskType type = index % 2 == 0
                     ? TaskType.IO_BOUND
                     : TaskType.CPU_BOUND;
+            int memory = type == TaskType.CPU_BOUND
+                    ? random.nextInt(901) + 100
+                    : random.nextInt(451) + 50;
             tasks.add(createTask(index, type, memory));
         }
         refreshTable();
@@ -170,18 +174,38 @@ public class PackageCreationController {
         }
     }
 
+    private int generateMemory(TaskType type) {
+        if (type == TaskType.CPU_BOUND) {
+            return random.nextInt(901) + 100;
+        } else {
+            return random.nextInt(451) + 50;
+        }
+    }
+
     @FXML
     private void cancel() {
         close();
     }
 
-    private void createAutomaticPackage(TaskType type) {
+    private void createAutomaticPackage(TaskType mainType) {
         int taskCount = taskCountSpinner.getValue();
-        int memory = memorySpinner.getValue();
         tasks.clear();
-        for (int index = 1; index <= taskCount; index++) {
-            tasks.add(createTask(index, type, memory));
+        double ratio = 0.7 + random.nextDouble() * 0.2;
+        int mainTasks = Math.max(1, (int) (taskCount * ratio));
+        int secondaryTasks = taskCount - mainTasks;
+        int taskNumber = 1;
+        for (int i = 0; i < mainTasks; i++) {
+            int memory = generateMemory(mainType);
+            tasks.add(createTask(taskNumber++, mainType, memory));
         }
+        TaskType secondaryType = mainType == TaskType.CPU_BOUND
+                ? TaskType.IO_BOUND
+                : TaskType.CPU_BOUND;
+        for (int i = 0; i < secondaryTasks; i++) {
+            int memory = generateMemory(secondaryType);
+            tasks.add(createTask(taskNumber++, secondaryType, memory));
+        }
+
         refreshTable();
     }
 
