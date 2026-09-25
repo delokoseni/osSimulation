@@ -21,4 +21,42 @@ public class TaskPackage {
     public boolean isEmpty() {
         return tasks.isEmpty();
     }
+
+    /**
+     * Количество вычислительных задач.
+     */
+    public int getMathTasks() {
+
+        return (int) tasks.stream()
+                .filter(task ->
+                        task.getType()
+                                == TaskType.CPU_BOUND
+                )
+                .count();
+    }
+
+    /**
+     * Количество задач ввода/вывода.
+     */
+    public int getInOutTasks() {
+
+        return (int) tasks.stream()
+                .filter(task ->
+                        task.getType()
+                                == TaskType.IO_BOUND
+                )
+                .count();
+    }
+
+    /**
+     * Суммарный объем памяти всех задач.
+     *
+     * Память задач хранится в MB.
+     */
+    public int getTasksMemory() {
+
+        return tasks.stream()
+                .mapToInt(Task::getMemoryRequired)
+                .sum();
+    }
 }

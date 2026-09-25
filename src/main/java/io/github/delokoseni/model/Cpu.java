@@ -9,41 +9,62 @@ public class Cpu {
 
     private Task currentTask;
 
-    /**
-     * Количество тактов, в течение которых CPU простаивал.
-     */
-    private int idleTime;
-
-    /**
-     * Общее количество обработанных тактов.
-     */
-    private int busyTime;
-
     public Cpu() {
+
         this.state = CpuState.IDLE;
+
+        this.currentTask = null;
     }
 
+    /**
+     * Назначает задачу на выполнение.
+     */
+    public void useToDoTask(Task task) {
+
+        task.setState(
+                TaskState.RUNNING
+        );
+
+        currentTask = task;
+    }
+
+    /**
+     * Завершает выполнение задачи CPU.
+     */
+    public void doTask(Task task) {
+
+        task.setState(
+                TaskState.READY
+        );
+
+        currentTask = null;
+    }
+
+    /**
+     * Проверяет, свободен ли CPU.
+     */
     public boolean isFree() {
+
         return currentTask == null;
     }
 
-    public void assignTask(Task task) {
-        // TODO: реализовать назначение задачи процессору
+    /**
+     * Устанавливает состояние CPU.
+     */
+    public void setState(
+            CpuState state
+    ) {
+
+        this.state = state;
     }
 
-    public void executeTick() {
-        // TODO: реализовать выполнение одного такта
-    }
+    /**
+     * Устанавливает текущую задачу CPU.
+     */
+    public void setCurrentTask(
+            Task task
+    ) {
 
-    public void releaseTask() {
-        // TODO: освободить CPU
-    }
-
-    public void incrementIdleTime() {
-        idleTime++;
-    }
-
-    public void incrementBusyTime() {
-        busyTime++;
+        this.currentTask = task;
     }
 }

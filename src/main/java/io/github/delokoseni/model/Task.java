@@ -27,12 +27,25 @@ public class Task {
     private TaskState state;
 
     /**
-     * Оставшееся время текущего CPU-burst.
+     * Сколько тактов задача уже выполнялась.
+     */
+    private int executionTime;
+
+    /**
+     * Сколько тактов требуется задаче.
+     *
+     * CPU_BOUND = 3
+     * IO_BOUND = 2
+     */
+    private final int requiredTime;
+
+    /**
+     * Оставшееся время CPU-burst.
      */
     private int remainingCpuTime;
 
     /**
-     * Оставшееся время текущего I/O-burst.
+     * Оставшееся время I/O-burst.
      */
     private int remainingIoTime;
 
@@ -51,6 +64,40 @@ public class Task {
         this.type = type;
         this.memoryRequired = memoryRequired;
         this.arrivalTime = arrivalTime;
-        this.state = TaskState.NEW;
+
+        // Python StateTask.WAIT
+        this.state = TaskState.WAITING;
+
+        this.executionTime = 0;
+
+        // Python:
+        // MATH -> 3
+        // INOUT -> 2
+        this.requiredTime =
+                type == TaskType.CPU_BOUND ? 3 : 2;
+
+        this.remainingCpuTime = 0;
+        this.remainingIoTime = 0;
+        this.completionTime = 0;
+    }
+
+    /**
+     * Выполнить один такт.
+     *
+     * Аналог Python Task.execute().
+     */
+    public boolean execute() {
+
+        if (state == TaskState.RUNNING) {
+
+            executionTime++;
+
+            if (executionTime >= requiredTime) {
+                state = TaskState.READY;
+                return true;
+            }
+        }
+
+        return false;
     }
 }
