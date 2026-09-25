@@ -1,6 +1,7 @@
 package io.github.delokoseni.controller;
 
 import io.github.delokoseni.model.TaskPackage;
+import io.github.delokoseni.model.TaskPackageType;
 import io.github.delokoseni.model.TaskType;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -73,30 +74,37 @@ public class MainController {
 
     @FXML
     private void choosePackage() {
-
         FileChooser fileChooser = new FileChooser();
-
         fileChooser.setTitle("Выбрать пакет");
-
         fileChooser.getExtensionFilters().add(
                 new FileChooser.ExtensionFilter(
                         "JSON files", "*.json"
                 )
         );
-
         File file = fileChooser.showOpenDialog(
                 packageNameField.getScene().getWindow()
         );
-
         if (file != null) {
-
             packageNameField.setText(file.getName());
-
-            // TODO:
-            // Здесь позже загрузим TaskPackage из JSON
+            try {
+                TaskPackageType packet = new TaskPackageType(file.toPath());
+                packageTypeLabel.setText(
+                        packet.getType().getDisplayName()
+                );
+                cpuTaskCountLabel.setText(
+                        String.valueOf(packet.getMathTasks())
+                );
+                ioTaskCountLabel.setText(
+                        String.valueOf(packet.getInOutTasks())
+                );
+            } catch (IOException e) {
+                packageTypeLabel.setText("Ошибка");
+                cpuTaskCountLabel.setText("-");
+                ioTaskCountLabel.setText("-");
+                e.printStackTrace();
+            }
         }
     }
-
 
     @FXML
     private void createPackage() {
@@ -199,5 +207,18 @@ public class MainController {
         alert.setHeaderText(null);
         alert.setContentText(message);
         alert.showAndWait();
+    }
+
+    private void updatePackageInfo(TaskPackageType packet) {
+        if (packet == null || packet.getTasksCount() == 0) {
+            packageTypeLabel.setText("-");
+            cpuTaskCountLabel.setText("0");
+            ioTaskCountLabel.setText("0");
+            return;
+        }
+
+        packageTypeLabel.setText(packet.getType().getDisplayName());
+        cpuTaskCountLabel.setText(String.valueOf(packet.getMathTasks()));
+        ioTaskCountLabel.setText(String.valueOf(packet.getInOutTasks()));
     }
 }
