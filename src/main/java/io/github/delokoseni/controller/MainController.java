@@ -13,6 +13,7 @@ import javafx.scene.control.Spinner;
 import javafx.scene.control.SpinnerValueFactory;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.StackPane;
 import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
@@ -46,6 +47,27 @@ public class MainController {
     @FXML
     private Label ioTaskCountLabel;
 
+    @FXML
+    private StackPane ganttChartSlot;
+
+    @FXML
+    private StackPane cpuChartSlot;
+
+    @FXML
+    private StackPane ioChartSlot;
+
+    @FXML
+    private StackPane memoryChartSlot;
+
+    @FXML
+    private StackPane completionChartSlot;
+
+    @FXML
+    private StackPane turnaroundChartSlot;
+
+    @FXML
+    private StackPane ratioChartSlot;
+
     private TaskPackage currentPackage;
 
     @FXML
@@ -73,6 +95,15 @@ public class MainController {
         packageTypeLabel.setText("-");
         cpuTaskCountLabel.setText("0");
         ioTaskCountLabel.setText("0");
+        SimulationCharts.initialize(
+                ganttChartSlot,
+                cpuChartSlot,
+                ioChartSlot,
+                memoryChartSlot,
+                completionChartSlot,
+                turnaroundChartSlot,
+                ratioChartSlot
+        );
     }
 
     @FXML
@@ -217,6 +248,15 @@ public class MainController {
     @FXML
     private void startSimulation() {
         outputArea.clear();
+        SimulationCharts.initialize(
+                ganttChartSlot,
+                cpuChartSlot,
+                ioChartSlot,
+                memoryChartSlot,
+                completionChartSlot,
+                turnaroundChartSlot,
+                ratioChartSlot
+        );
 
         outputArea.appendText(
                 "Запуск моделирования...\n\n"
@@ -286,10 +326,29 @@ public class MainController {
                             + "\n"
             );
 
+            var ratioPerformance = SimulationCharts.runRatioStudy(
+                    currentPackage,
+                    blocks,
+                    ram,
+                    tacts
+            );
+            SimulationCharts.render(
+                    ganttChartSlot,
+                    cpuChartSlot,
+                    ioChartSlot,
+                    memoryChartSlot,
+                    completionChartSlot,
+                    turnaroundChartSlot,
+                    ratioChartSlot,
+                    simulation.getOperatingSystem().getSnapshots(),
+                    currentPackage.getTasks(),
+                    ratioPerformance
+            );
+
         } catch (Exception e) {
             showInformation(
                     "Ошибка",
-                    "Не удалось запустить симуляцию:\n"
+                    "Не удалось выполнить симуляцию или построить визуализации:\n"
                             + e.getMessage()
             );
 

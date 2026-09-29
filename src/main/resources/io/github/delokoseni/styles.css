@@ -63,10 +63,59 @@
     -fx-alignment: center;
 }
 
-.graph-placeholder {
-    -fx-background-color: #F0F0F0;
-    -fx-border-color: #CCCCCC;
-    -fx-text-fill: #666666;
-    -fx-min-height: 150px;
+.chart-slot {
+    -fx-background-color: #FFFFFF;
+    -fx-border-color: #D5D9E0;
+    -fx-border-radius: 6px;
+    -fx-background-radius: 6px;
+    -fx-padding: 6px;
+}
+
+.chart-title {
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #263248;
+}
+
+.chart-subtitle {
+    -fx-font-size: 10px;
+    -fx-text-fill: #667085;
+}
+
+.chart-placeholder {
+    -fx-text-fill: #667085;
     -fx-alignment: center;
+    -fx-wrap-text: true;
+}
+
+.chart-legend-label {
+    -fx-font-size: 9px;
+    -fx-text-fill: #475467;
+}
+
+.chart {
+    -fx-padding: 0;
+    -fx-background-color: transparent;
+}
+
+.chart-plot-background {
+    -fx-background-color: #FFFFFF;
+}
+
+.chart-vertical-grid-lines,
+.chart-horizontal-grid-lines {
+    -fx-stroke: #E7EAF0;
+}
+
+.axis-label {
+    -fx-font-size: 9px;
+}
+
+.axis-tick-mark,
+.axis-minor-tick-mark {
+    -fx-stroke: #98A2B3;
+}
+
+.axis {
+    -fx-tick-label-font: 9px "Century Gothic";
 }

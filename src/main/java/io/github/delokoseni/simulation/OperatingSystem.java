@@ -43,6 +43,8 @@ public class OperatingSystem {
 
     private Map<String, Integer> cpuStateCounts;
 
+    private final List<SimulationSnapshot> snapshots = new ArrayList<>();
+
     public OperatingSystem(
             TaskPackage packet,
             int ram,
@@ -660,12 +662,60 @@ public class OperatingSystem {
         ((List<Integer>) history.get(
                 "tacts"
         )).add(currentTact);
+
+        List<SimulationSnapshot.TaskProgress> taskProgress =
+                packet.getTasks()
+                        .stream()
+                        .map(task -> new SimulationSnapshot.TaskProgress(
+                                task.getId(),
+                                task.getType(),
+                                task.getState(),
+                                task.getArrivalTime()
+                        ))
+                        .toList();
+
+        int mathTasksRunning = (int) taskProgress.stream()
+                .filter(task ->
+                        task.type() == TaskType.CPU_BOUND
+                                && task.state() == TaskState.RUNNING
+                )
+                .count();
+
+        int ioTasksRunning = (int) taskProgress.stream()
+                .filter(task ->
+                        task.type() == TaskType.IO_BOUND
+                                && task.state() == TaskState.RUNNING
+                )
+                .count();
+        int completedTasks = (int) taskProgress.stream()
+                .filter(task -> task.state() == TaskState.READY)
+                .count();
+        int waitingTasks = (int) taskProgress.stream()
+                .filter(task -> task.state() == TaskState.WAITING)
+                .count();
+
+        snapshots.add(new SimulationSnapshot(
+                currentTact,
+                cpu.getState(),
+                usedBlocks,
+                maxBlocksCount,
+                mathTasksRunning,
+                ioTasksRunning,
+                completedTasks,
+                waitingTasks,
+                mathTasksRunning + ioTasksRunning,
+                taskProgress
+        ));
     }
 
     public Map<String, Integer> getCpuStateCounts() {
         return new HashMap<>(
                 cpuStateCounts
         );
+    }
+
+    public List<SimulationSnapshot> getSnapshots() {
+        return List.copyOf(snapshots);
     }
 
     public void runTact() {
@@ -961,6 +1011,8 @@ public class OperatingSystem {
     }
 
     public void reset() {
+        snapshots.clear();
+
         waitQueue =
                 new ArrayList<>(
                         packet.getTasks()

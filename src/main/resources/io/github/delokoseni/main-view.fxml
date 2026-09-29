@@ -32,80 +32,106 @@
                 <TextArea fx:id="outputArea"
                           editable="false"
                           wrapText="true"
-                          prefHeight="220"
-                          VBox.vgrow="SOMETIMES"
+                          minHeight="320"
+                          prefHeight="320"
+                          VBox.vgrow="NEVER"
                           promptText="Здесь будет отображаться ход моделирования..."/>
 
-                <GridPane hgap="10"
-                          vgap="10"
-                          VBox.vgrow="ALWAYS">
+                <ScrollPane fitToWidth="true"
+                            hbarPolicy="NEVER"
+                            minHeight="0"
+                            VBox.vgrow="ALWAYS">
+                    <content>
+                        <GridPane hgap="10"
+                                  vgap="10"
+                                  prefHeight="1020"
+                                  minHeight="950">
 
-                    <Label text="График 1"
-                           styleClass="graph-placeholder"
-                           GridPane.columnIndex="0"
-                           GridPane.rowIndex="0"
-                           GridPane.hgrow="ALWAYS"
-                           GridPane.vgrow="ALWAYS"
-                           maxWidth="Infinity"
-                           maxHeight="Infinity"/>
+                            <StackPane fx:id="ganttChartSlot"
+                                       styleClass="chart-slot"
+                                       GridPane.columnIndex="0"
+                                       GridPane.rowIndex="0"
+                                       GridPane.hgrow="ALWAYS"
+                                       GridPane.vgrow="ALWAYS"
+                                       minHeight="230"
+                                       maxWidth="Infinity"
+                                       maxHeight="Infinity"/>
 
-                    <Label text="График 2"
-                           styleClass="graph-placeholder"
-                           GridPane.columnIndex="1"
-                           GridPane.rowIndex="0"
-                           GridPane.hgrow="ALWAYS"
-                           GridPane.vgrow="ALWAYS"
-                           maxWidth="Infinity"
-                           maxHeight="Infinity"/>
+                            <StackPane fx:id="cpuChartSlot"
+                                       styleClass="chart-slot"
+                                       GridPane.columnIndex="1"
+                                       GridPane.rowIndex="0"
+                                       GridPane.hgrow="ALWAYS"
+                                       GridPane.vgrow="ALWAYS"
+                                       minHeight="230"
+                                       maxWidth="Infinity"
+                                       maxHeight="Infinity"/>
 
-                    <Label text="График 3"
-                           styleClass="graph-placeholder"
-                           GridPane.columnIndex="2"
-                           GridPane.rowIndex="0"
-                           GridPane.hgrow="ALWAYS"
-                           GridPane.vgrow="ALWAYS"
-                           maxWidth="Infinity"
-                           maxHeight="Infinity"/>
+                            <StackPane fx:id="ioChartSlot"
+                                       styleClass="chart-slot"
+                                       GridPane.columnIndex="0"
+                                       GridPane.rowIndex="1"
+                                       GridPane.hgrow="ALWAYS"
+                                       GridPane.vgrow="ALWAYS"
+                                       minHeight="230"
+                                       maxWidth="Infinity"
+                                       maxHeight="Infinity"/>
 
-                    <Label text="График 4"
-                           styleClass="graph-placeholder"
-                           GridPane.columnIndex="0"
-                           GridPane.rowIndex="1"
-                           GridPane.hgrow="ALWAYS"
-                           GridPane.vgrow="ALWAYS"
-                           maxWidth="Infinity"
-                           maxHeight="Infinity"/>
+                            <StackPane fx:id="memoryChartSlot"
+                                       styleClass="chart-slot"
+                                       GridPane.columnIndex="1"
+                                       GridPane.rowIndex="1"
+                                       GridPane.hgrow="ALWAYS"
+                                       GridPane.vgrow="ALWAYS"
+                                       minHeight="230"
+                                       maxWidth="Infinity"
+                                       maxHeight="Infinity"/>
 
-                    <Label text="График 5"
-                           styleClass="graph-placeholder"
-                           GridPane.columnIndex="1"
-                           GridPane.rowIndex="1"
-                           GridPane.hgrow="ALWAYS"
-                           GridPane.vgrow="ALWAYS"
-                           maxWidth="Infinity"
-                           maxHeight="Infinity"/>
+                            <StackPane fx:id="completionChartSlot"
+                                       styleClass="chart-slot"
+                                       GridPane.columnIndex="0"
+                                       GridPane.rowIndex="2"
+                                       GridPane.hgrow="ALWAYS"
+                                       GridPane.vgrow="ALWAYS"
+                                       minHeight="230"
+                                       maxWidth="Infinity"
+                                       maxHeight="Infinity"/>
 
-                    <Label text="График 6"
-                           styleClass="graph-placeholder"
-                           GridPane.columnIndex="2"
-                           GridPane.rowIndex="1"
-                           GridPane.hgrow="ALWAYS"
-                           GridPane.vgrow="ALWAYS"
-                           maxWidth="Infinity"
-                           maxHeight="Infinity"/>
+                            <StackPane fx:id="turnaroundChartSlot"
+                                       styleClass="chart-slot"
+                                       GridPane.columnIndex="1"
+                                       GridPane.rowIndex="2"
+                                       GridPane.hgrow="ALWAYS"
+                                       GridPane.vgrow="ALWAYS"
+                                       minHeight="230"
+                                       maxWidth="Infinity"
+                                       maxHeight="Infinity"/>
 
-                    <columnConstraints>
-                        <ColumnConstraints percentWidth="33.3333"/>
-                        <ColumnConstraints percentWidth="33.3333"/>
-                        <ColumnConstraints percentWidth="33.3334"/>
-                    </columnConstraints>
+                            <StackPane fx:id="ratioChartSlot"
+                                       styleClass="chart-slot"
+                                       GridPane.columnIndex="0"
+                                       GridPane.columnSpan="2"
+                                       GridPane.rowIndex="3"
+                                       GridPane.hgrow="ALWAYS"
+                                       GridPane.vgrow="ALWAYS"
+                                       minHeight="230"
+                                       maxWidth="Infinity"
+                                       maxHeight="Infinity"/>
 
-                    <rowConstraints>
-                        <RowConstraints percentHeight="50"/>
-                        <RowConstraints percentHeight="50"/>
-                    </rowConstraints>
+                            <columnConstraints>
+                                <ColumnConstraints percentWidth="50"/>
+                                <ColumnConstraints percentWidth="50"/>
+                            </columnConstraints>
 
-                </GridPane>
+                            <rowConstraints>
+                                <RowConstraints percentHeight="25"/>
+                                <RowConstraints percentHeight="25"/>
+                                <RowConstraints percentHeight="25"/>
+                                <RowConstraints percentHeight="25"/>
+                            </rowConstraints>
+                        </GridPane>
+                    </content>
+                </ScrollPane>
 
             </VBox>
 
