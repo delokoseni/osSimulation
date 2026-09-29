@@ -18,11 +18,9 @@ public class TaskGenerator {
             double ioBoundRatio,
             double balancedRatio
     ) {
-
         List<Task> tasks = new ArrayList<>();
 
         for (int i = 0; i < taskCount; i++) {
-
             TaskType type = generateType(
                     cpuBoundRatio,
                     ioBoundRatio,
@@ -49,15 +47,10 @@ public class TaskGenerator {
             double ioBoundRatio,
             double balancedRatio
     ) {
-        // TODO: реализовать генерацию типа задачи
-
         return TaskType.CPU_BOUND;
     }
 
     private int generateMemory(TaskType type) {
-        // TODO: позже можно сделать зависимость памяти
-        // от типа задачи
-
         return 1;
     }
 }

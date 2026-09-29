@@ -9,7 +9,6 @@ public class Main extends Application {
 
     @Override
     public void start(Stage stage) throws Exception {
-
         FXMLLoader loader = new FXMLLoader(
                 getClass().getResource("/io/github/delokoseni/main-view.fxml")
         );

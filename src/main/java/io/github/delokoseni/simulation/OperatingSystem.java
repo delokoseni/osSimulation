@@ -17,72 +17,30 @@ import java.util.function.Consumer;
 @Getter
 public class OperatingSystem {
 
-    /**
-     * Объем оперативной памяти в ГБ.
-     */
     private final int ram;
 
-    /**
-     * Максимальное количество разделов памяти.
-     */
     private int maxBlocksCount;
 
-    /**
-     * Пакет заданий.
-     */
     private final TaskPackage packet;
 
-    /**
-     * Разделы памяти.
-     *
-     * Каждый элемент содержит задачу,
-     * находящуюся в соответствующем разделе.
-     */
     private List<Task> memoryBlocks;
 
-    /**
-     * Очередь ожидающих загрузки задач.
-     */
     private List<Task> waitQueue;
 
-    /**
-     * Очередь завершенных задач.
-     */
     private List<Task> readyQueue;
 
-    /**
-     * Выполняющиеся задачи.
-     */
     private List<Task> runningTasks;
 
-    /**
-     * Задачи, ожидающие завершения I/O.
-     */
     private List<Task> ioWaitTasks;
 
-    /**
-     * Процессор.
-     */
     private final Cpu cpu;
 
-    /**
-     * Текущий такт.
-     */
     private int currentTact;
 
-    /**
-     * Callback для вывода информации в интерфейс.
-     */
     private Consumer<String> outputCallback;
 
-    /**
-     * История выполнения.
-     */
     private Map<String, Object> history;
 
-    /**
-     * Счетчики состояний CPU.
-     */
     private Map<String, Integer> cpuStateCounts;
 
     public OperatingSystem(
@@ -90,7 +48,6 @@ public class OperatingSystem {
             int ram,
             int maxBlocksCount
     ) {
-
         if (ram <= 0) {
             throw new IllegalArgumentException(
                     "Объем RAM должен быть положительным"
@@ -133,15 +90,7 @@ public class OperatingSystem {
         initializeCpuStateCounts();
     }
 
-    // =========================================================
-    // ИНИЦИАЛИЗАЦИЯ
-    // =========================================================
-
-    /**
-     * Инициализация истории выполнения.
-     */
     private void initializeHistory() {
-
         history = new HashMap<>();
 
         history.put(
@@ -206,11 +155,7 @@ public class OperatingSystem {
         );
     }
 
-    /**
-     * Инициализация счетчиков состояний CPU.
-     */
     private void initializeCpuStateCounts() {
-
         cpuStateCounts = new HashMap<>();
 
         cpuStateCounts.put(
@@ -234,19 +179,9 @@ public class OperatingSystem {
         );
     }
 
-    // =========================================================
-    // РАБОТА С ПАМЯТЬЮ
-    // =========================================================
-
-    /**
-     * Изменение количества разделов памяти.
-     *
-     * Аналог Python changeMemoryBlocksCount().
-     */
     public void changeMemoryBlocksCount(
             int newCount
     ) {
-
         if (newCount <= 0) {
             throw new IllegalArgumentException(
                     "Количество разделов памяти должно быть положительным"
@@ -257,23 +192,15 @@ public class OperatingSystem {
 
         maxBlocksCount = newCount;
 
-        /*
-         * Получаем все задачи,
-         * которые сейчас находятся в памяти.
-         */
         List<Task> currentTasks =
                 new ArrayList<>();
 
         for (Task task : memoryBlocks) {
-
             if (task != null) {
                 currentTasks.add(task);
             }
         }
 
-        /*
-         * Создаем новое количество разделов.
-         */
         List<Task> newMemoryBlocks =
                 new ArrayList<>(newCount);
 
@@ -281,10 +208,6 @@ public class OperatingSystem {
             newMemoryBlocks.add(null);
         }
 
-        /*
-         * Оставляем столько задач,
-         * сколько помещается в новые разделы.
-         */
         int tasksToKeep =
                 Math.min(
                         currentTasks.size(),
@@ -292,23 +215,17 @@ public class OperatingSystem {
                 );
 
         for (int i = 0; i < tasksToKeep; i++) {
-
             newMemoryBlocks.set(
                     i,
                     currentTasks.get(i)
             );
         }
 
-        /*
-         * Остальные задачи возвращаем
-         * в очередь ожидания.
-         */
         for (
                 int i = tasksToKeep;
                 i < currentTasks.size();
                 i++
         ) {
-
             Task task =
                     currentTasks.get(i);
 
@@ -330,7 +247,6 @@ public class OperatingSystem {
         );
 
         if (currentTasks.size() > newCount) {
-
             output(
                     "Возвращено в очередь: "
                             + (
@@ -342,36 +258,24 @@ public class OperatingSystem {
         }
     }
 
-    /**
-     * Обновляет состояние CPU после изменения памяти.
-     */
     private void updateCpuStateAfterMemoryChange() {
-
         int usedBlocks =
                 countUsedMemoryBlocks();
 
         if (usedBlocks > maxBlocksCount) {
-
             changeCpuState(
                     CpuState.OVERLOADED,
                     "(перегрузка после изменения памяти)"
             );
-
         } else if (
                 cpu.getState() == CpuState.OVERLOADED
                         && usedBlocks <= maxBlocksCount
         ) {
-
             changeToNormalState();
         }
     }
 
-    /**
-     * Автоматически уменьшает количество разделов,
-     * если нагрузка стала маленькой.
-     */
     private boolean checkAndAdjustMemoryBlocks() {
-
         int currentLoad =
                 runningTasks.size();
 
@@ -379,7 +283,6 @@ public class OperatingSystem {
                 currentLoad < maxBlocksCount / 2
                         && maxBlocksCount > 2
         ) {
-
             int newCount =
                     Math.max(
                             maxBlocksCount - 1,
@@ -396,15 +299,10 @@ public class OperatingSystem {
         return false;
     }
 
-    /**
-     * Количество занятых разделов памяти.
-     */
     private int countUsedMemoryBlocks() {
-
         int count = 0;
 
         for (Task task : memoryBlocks) {
-
             if (task != null) {
                 count++;
             }
@@ -413,47 +311,26 @@ public class OperatingSystem {
         return count;
     }
 
-    // =========================================================
-    // CALLBACK
-    // =========================================================
-
-    /**
-     * Устанавливает callback для вывода сообщений.
-     */
     public void setOutputCallback(
             Consumer<String> callback
     ) {
-
         this.outputCallback = callback;
     }
 
-    /**
-     * Вывод сообщения.
-     */
     public void output(String message) {
-
         if (outputCallback != null) {
             outputCallback.accept(message);
         }
     }
 
-    // =========================================================
-    // СОСТОЯНИЯ CPU
-    // =========================================================
-
-    /**
-     * Изменяет состояние CPU.
-     */
     public void changeCpuState(
             CpuState newState,
             String reason
     ) {
-
         CpuState oldState =
                 cpu.getState();
 
         if (oldState != newState) {
-
             cpu.setState(newState);
 
             output(
@@ -472,23 +349,19 @@ public class OperatingSystem {
             int ioCount = 0;
 
             for (Task task : runningTasks) {
-
                 if (
                         task.getType()
                                 == TaskType.CPU_BOUND
                                 && task.getState()
                                 == TaskState.RUNNING
                 ) {
-
                     mathCount++;
-
                 } else if (
                         task.getType()
                                 == TaskType.IO_BOUND
                                 && task.getState()
                                 == TaskState.RUNNING
                 ) {
-
                     ioCount++;
                 }
             }
@@ -507,16 +380,11 @@ public class OperatingSystem {
         }
     }
 
-    /**
-     * Возвращает CPU в нормальное состояние.
-     */
     private void changeToNormalState() {
-
         boolean hasMathTasks = false;
         boolean hasIoTasks = false;
 
         for (Task task : runningTasks) {
-
             if (task.getState() != TaskState.RUNNING) {
                 continue;
             }
@@ -525,34 +393,26 @@ public class OperatingSystem {
                     task.getType()
                             == TaskType.CPU_BOUND
             ) {
-
                 hasMathTasks = true;
-
             } else if (
                     task.getType()
                             == TaskType.IO_BOUND
             ) {
-
                 hasIoTasks = true;
             }
         }
 
         if (hasMathTasks) {
-
             changeCpuState(
                     CpuState.EXECUTING,
                     "(система восстановилась, есть MATH задачи)"
             );
-
         } else if (hasIoTasks) {
-
             changeCpuState(
                     CpuState.IO_WAIT,
                     "(система восстановилась, есть INOUT задачи)"
             );
-
         } else {
-
             changeCpuState(
                     CpuState.IDLE,
                     "(система восстановилась, нет активных задач)"
@@ -560,11 +420,7 @@ public class OperatingSystem {
         }
     }
 
-    /**
-     * Обработка состояния IDLE.
-     */
     private void handleIdleState() {
-
         checkOverload();
 
         if (cpu.getState() == CpuState.OVERLOADED) {
@@ -578,16 +434,13 @@ public class OperatingSystem {
                 countRunningTasks(TaskType.IO_BOUND);
 
         if (mathCount > 0) {
-
             changeCpuState(
                     CpuState.EXECUTING,
                     "(найдены "
                             + mathCount
                             + " активных MATH задач)"
             );
-
         } else if (ioCount > 0) {
-
             changeCpuState(
                     CpuState.IO_WAIT,
                     "(найдены "
@@ -597,11 +450,7 @@ public class OperatingSystem {
         }
     }
 
-    /**
-     * Обработка состояния EXECUTING.
-     */
     private void handleExecutingState() {
-
         checkOverload();
 
         if (cpu.getState() == CpuState.OVERLOADED) {
@@ -618,17 +467,14 @@ public class OperatingSystem {
                 mathCount == 0
                         && ioCount > 0
         ) {
-
             changeCpuState(
                     CpuState.IO_WAIT,
                     "(MATH задачи завершены, есть активные INOUT)"
             );
-
         } else if (
                 mathCount == 0
                         && ioCount == 0
         ) {
-
             changeCpuState(
                     CpuState.IDLE,
                     "(все активные задачи завершены)"
@@ -636,11 +482,7 @@ public class OperatingSystem {
         }
     }
 
-    /**
-     * Обработка состояния IO_WAIT.
-     */
     private void handleIoWaitState() {
-
         checkOverload();
 
         if (cpu.getState() == CpuState.OVERLOADED) {
@@ -657,17 +499,14 @@ public class OperatingSystem {
                 ioCount == 0
                         && mathCount > 0
         ) {
-
             changeCpuState(
                     CpuState.EXECUTING,
                     "(INOUT задачи завершены, есть активные MATH)"
             );
-
         } else if (
                 ioCount == 0
                         && mathCount == 0
         ) {
-
             changeCpuState(
                     CpuState.IDLE,
                     "(все активные задачи завершены)"
@@ -675,23 +514,17 @@ public class OperatingSystem {
         }
     }
 
-    /**
-     * Количество выполняющихся задач определенного типа.
-     */
     private int countRunningTasks(
             TaskType type
     ) {
-
         int count = 0;
 
         for (Task task : runningTasks) {
-
             if (
                     task.getType() == type
                             && task.getState()
                             == TaskState.RUNNING
             ) {
-
                 count++;
             }
         }
@@ -699,36 +532,23 @@ public class OperatingSystem {
         return count;
     }
 
-    // =========================================================
-    // ПЕРЕГРУЗКА CPU
-    // =========================================================
-
-    /**
-     * Управление состоянием CPU.
-     */
     private void manageCpuStates() {
-
         checkOverload();
 
         if (
                 cpu.getState()
                         != CpuState.OVERLOADED
         ) {
-
             switch (cpu.getState()) {
-
                 case IDLE:
                     handleIdleState();
                     break;
-
                 case EXECUTING:
                     handleExecutingState();
                     break;
-
                 case IO_WAIT:
                     handleIoWaitState();
                     break;
-
                 case OVERLOADED:
                     break;
             }
@@ -739,7 +559,6 @@ public class OperatingSystem {
                         .getDisplayName();
 
         if (cpuStateCounts.containsKey(currentState)) {
-
             cpuStateCounts.put(
                     currentState,
                     cpuStateCounts.get(currentState) + 1
@@ -747,11 +566,7 @@ public class OperatingSystem {
         }
     }
 
-    /**
-     * Проверка перегрузки системы.
-     */
     private void checkOverload() {
-
         int currentUsedBlocks =
                 countUsedMemoryBlocks();
 
@@ -759,12 +574,10 @@ public class OperatingSystem {
                 currentUsedBlocks
                         > maxBlocksCount
         ) {
-
             if (
                     cpu.getState()
                             != CpuState.OVERLOADED
             ) {
-
                 changeCpuState(
                         CpuState.OVERLOADED,
                         "(перегрузка памяти: "
@@ -774,29 +587,18 @@ public class OperatingSystem {
                                 + " разделов)"
                 );
             }
-
         } else {
-
             if (
                     cpu.getState()
                             == CpuState.OVERLOADED
             ) {
-
                 changeToNormalState();
             }
         }
     }
 
-    // =========================================================
-    // СТАТИСТИКА
-    // =========================================================
-
-    /**
-     * Собирает статистику за текущий такт.
-     */
     @SuppressWarnings("unchecked")
     private void collectStatistics() {
-
         int usedBlocks =
                 countUsedMemoryBlocks();
 
@@ -817,12 +619,10 @@ public class OperatingSystem {
         int runCount = 0;
 
         for (Task task : runningTasks) {
-
             if (
                     task.getState()
                             == TaskState.RUNNING
             ) {
-
                 runCount++;
             }
         }
@@ -862,27 +662,13 @@ public class OperatingSystem {
         )).add(currentTact);
     }
 
-    /**
-     * Возвращает копию счетчиков состояний CPU.
-     */
     public Map<String, Integer> getCpuStateCounts() {
-
         return new HashMap<>(
                 cpuStateCounts
         );
     }
 
-    // =========================================================
-    // ОСНОВНОЙ ТАКТ
-    // =========================================================
-
-    /**
-     * Выполняет один такт моделирования.
-     *
-     * Аналог Python runTact().
-     */
     public void runTact() {
-
         currentTact++;
 
         output(
@@ -906,14 +692,10 @@ public class OperatingSystem {
                         + maxBlocksCount
         );
 
-        /*
-         * Автоматическая настройка памяти.
-         */
         boolean memoryAdjusted =
                 checkAndAdjustMemoryBlocks();
 
         if (memoryAdjusted) {
-
             usedBlocks =
                     countUsedMemoryBlocks();
 
@@ -926,20 +708,15 @@ public class OperatingSystem {
             );
         }
 
-        /*
-         * Вывод текущего содержимого разделов.
-         */
         for (
                 int i = 0;
                 i < memoryBlocks.size();
                 i++
         ) {
-
             Task task =
                     memoryBlocks.get(i);
 
             if (task != null) {
-
                 output(
                         "Раздел "
                                 + (i + 1)
@@ -953,15 +730,9 @@ public class OperatingSystem {
             }
         }
 
-        /*
-         * Освобождаем завершенные задачи.
-         */
         boolean memoryFreed =
                 freeCompletedTasks();
 
-        /*
-         * Загружаем новые задачи.
-         */
         boolean memoryLoaded =
                 loadTasksToMemory();
 
@@ -969,7 +740,6 @@ public class OperatingSystem {
                 memoryFreed
                         || memoryLoaded
         ) {
-
             usedBlocks =
                     countUsedMemoryBlocks();
 
@@ -981,19 +751,10 @@ public class OperatingSystem {
             );
         }
 
-        /*
-         * Выполняем задачи.
-         */
         executeTasks();
 
-        /*
-         * Обновляем состояние CPU.
-         */
         manageCpuStates();
 
-        /*
-         * Сохраняем статистику.
-         */
         collectStatistics();
 
         output(
@@ -1003,15 +764,7 @@ public class OperatingSystem {
         );
     }
 
-    // =========================================================
-    // РАБОТА С ЗАДАЧАМИ
-    // =========================================================
-
-    /**
-     * Освобождает разделы от завершенных задач.
-     */
     private boolean freeCompletedTasks() {
-
         boolean freed = false;
 
         for (
@@ -1019,7 +772,6 @@ public class OperatingSystem {
                 i < memoryBlocks.size();
                 i++
         ) {
-
             Task task =
                     memoryBlocks.get(i);
 
@@ -1028,7 +780,6 @@ public class OperatingSystem {
                             && task.getState()
                             == TaskState.READY
             ) {
-
                 output(
                         "Задача "
                                 + task.getId()
@@ -1055,11 +806,7 @@ public class OperatingSystem {
         return freed;
     }
 
-    /**
-     * Загружает задачи в свободные разделы.
-     */
     private boolean loadTasksToMemory() {
-
         boolean loaded = false;
 
         for (
@@ -1067,12 +814,10 @@ public class OperatingSystem {
                 i < memoryBlocks.size();
                 i++
         ) {
-
             if (
                     memoryBlocks.get(i) == null
                             && !waitQueue.isEmpty()
             ) {
-
                 Task task =
                         waitQueue.remove(0);
 
@@ -1099,7 +844,6 @@ public class OperatingSystem {
                         currentUsedBlocks
                                 > maxBlocksCount
                 ) {
-
                     output(
                             "ПРЕДУПРЕЖДЕНИЕ: "
                                     + "Превышено максимальное "
@@ -1116,17 +860,12 @@ public class OperatingSystem {
         return loaded;
     }
 
-    /**
-     * Выполняет задачи, находящиеся в памяти.
-     */
     private void executeTasks() {
-
         for (
                 int i = 0;
                 i < memoryBlocks.size();
                 i++
         ) {
-
             Task task =
                     memoryBlocks.get(i);
 
@@ -1134,14 +873,10 @@ public class OperatingSystem {
                 continue;
             }
 
-            /*
-             * Новая задача начинает выполняться.
-             */
             if (
                     task.getState()
                             == TaskState.WAITING
             ) {
-
                 cpu.useToDoTask(task);
 
                 output(
@@ -1157,7 +892,6 @@ public class OperatingSystem {
                         task.getType()
                                 == TaskType.IO_BOUND
                 ) {
-
                     if (!ioWaitTasks.contains(task)) {
                         ioWaitTasks.add(task);
                     }
@@ -1166,15 +900,10 @@ public class OperatingSystem {
                 if (!runningTasks.contains(task)) {
                     runningTasks.add(task);
                 }
-
-                /*
-                 * Задача уже выполняется.
-                 */
             } else if (
                     task.getState()
                             == TaskState.RUNNING
             ) {
-
                 boolean completed =
                         task.execute();
 
@@ -1191,7 +920,6 @@ public class OperatingSystem {
                 );
 
                 if (completed) {
-
                     output(
                             "Задача "
                                     + task.getId()
@@ -1201,31 +929,12 @@ public class OperatingSystem {
                     );
 
                     ioWaitTasks.remove(task);
-
-                    /*
-                     * В Python задача здесь
-                     * переходит в READY.
-                     *
-                     * Освобождение памяти произойдет
-                     * в следующем такте через
-                     * freeCompletedTasks().
-                     */
                 }
             }
         }
     }
 
-    // =========================================================
-    // ЗАВЕРШЕНИЕ СИМУЛЯЦИИ
-    // =========================================================
-
-    /**
-     * Проверяет, закончилась ли симуляция.
-     *
-     * Аналог Python isSimOver().
-     */
     public boolean isSimulationFinished() {
-
         if (!waitQueue.isEmpty()) {
             return false;
         }
@@ -1239,13 +948,11 @@ public class OperatingSystem {
         }
 
         for (Task task : memoryBlocks) {
-
             if (
                     task != null
                             && task.getState()
                             != TaskState.READY
             ) {
-
                 return false;
             }
         }
@@ -1253,11 +960,7 @@ public class OperatingSystem {
         return true;
     }
 
-    /**
-     * Сбрасывает ОС в начальное состояние.
-     */
     public void reset() {
-
         waitQueue =
                 new ArrayList<>(
                         packet.getTasks()
@@ -1292,12 +995,7 @@ public class OperatingSystem {
         initializeHistory();
         initializeCpuStateCounts();
 
-        /*
-         * Возвращаем все задачи
-         * в начальное состояние.
-         */
         for (Task task : packet.getTasks()) {
-
             task.setState(
                     TaskState.WAITING
             );
@@ -1310,19 +1008,13 @@ public class OperatingSystem {
         );
     }
 
-    // =========================================================
-    // ВСПОМОГАТЕЛЬНЫЕ МЕТОДЫ
-    // =========================================================
-
     private String getTaskTypeName(
             Task task
     ) {
-
         if (
                 task.getType()
                         == TaskType.CPU_BOUND
         ) {
-
             return "MATH";
         }
 
@@ -1332,21 +1024,15 @@ public class OperatingSystem {
     private String getTaskStateName(
             Task task
     ) {
-
         return switch (task.getState()) {
-
             case WAITING ->
                     "ОЖИДАНИЕ ВЫПОЛНЕНИЯ";
-
             case RUNNING ->
                     "В ПРОЦЕССЕ ВЫПОЛНЕНИЯ";
-
             case READY ->
                     "ВЫПОЛНЕНА";
-
             case NEW ->
                     "НОВАЯ";
-
             case TERMINATED ->
                     "ЗАВЕРШЕНА";
         };

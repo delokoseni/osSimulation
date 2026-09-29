@@ -3,9 +3,7 @@ package io.github.delokoseni.controller;
 import io.github.delokoseni.model.TaskPackage;
 import io.github.delokoseni.model.TaskPackageType;
 import io.github.delokoseni.model.TaskType;
-import io.github.delokoseni.simulation.OperatingSystem;
 import io.github.delokoseni.simulation.Simulation;
-import io.github.delokoseni.simulation.SimulationResult;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
@@ -48,14 +46,10 @@ public class MainController {
     @FXML
     private Label ioTaskCountLabel;
 
-    /**
-     * Текущий выбранный пакет задач.
-     */
     private TaskPackage currentPackage;
 
     @FXML
     public void initialize() {
-
         blocksSpinner.setValueFactory(
                 new SpinnerValueFactory.IntegerSpinnerValueFactory(
                         1, 64, 10
@@ -81,12 +75,8 @@ public class MainController {
         ioTaskCountLabel.setText("0");
     }
 
-    /**
-     * Выбор готового JSON-пакета.
-     */
     @FXML
     private void choosePackage() {
-
         FileChooser fileChooser = new FileChooser();
 
         fileChooser.setTitle("Выбрать пакет");
@@ -107,7 +97,6 @@ public class MainController {
         }
 
         try {
-
             TaskPackageType packet =
                     new TaskPackageType(file.toPath());
 
@@ -119,7 +108,6 @@ public class MainController {
             updatePackageInfo(packet);
 
         } catch (IOException e) {
-
             currentPackage = null;
 
             packageNameField.setText("Пакет не выбран");
@@ -138,14 +126,9 @@ public class MainController {
         }
     }
 
-    /**
-     * Открывает окно создания нового пакета.
-     */
     @FXML
     private void createPackage() {
-
         try {
-
             FXMLLoader loader = new FXMLLoader(
                     getClass().getResource(
                             "/io/github/delokoseni/package-creation.fxml"
@@ -188,7 +171,6 @@ public class MainController {
             stage.showAndWait();
 
         } catch (IOException exception) {
-
             showInformation(
                     "Ошибка",
                     "Не удалось открыть окно создания пакета:\n"
@@ -197,14 +179,10 @@ public class MainController {
         }
     }
 
-    /**
-     * Получение пакета из окна его создания.
-     */
     private void setCurrentPackage(
             String name,
             TaskPackage taskPackage
     ) {
-
         currentPackage = taskPackage;
 
         packageNameField.setText(name);
@@ -236,12 +214,8 @@ public class MainController {
         );
     }
 
-    /**
-     * Запуск моделирования.
-     */
     @FXML
     private void startSimulation() {
-
         outputArea.clear();
 
         outputArea.appendText(
@@ -271,7 +245,6 @@ public class MainController {
         );
 
         if (currentPackage == null) {
-
             showInformation(
                     "Ошибка",
                     "Сначала выберите пакет заданий."
@@ -281,10 +254,6 @@ public class MainController {
         }
 
         try {
-
-            /*
-             * Simulation сама создаст OperatingSystem.
-             */
             Simulation simulation =
                     new Simulation(
                             currentPackage,
@@ -293,9 +262,6 @@ public class MainController {
                             tacts
                     );
 
-            /*
-             * Передаем вывод симуляции в TextArea.
-             */
             simulation.getOperatingSystem()
                     .setOutputCallback(
                             message -> outputArea.appendText(
@@ -303,14 +269,8 @@ public class MainController {
                             )
                     );
 
-            /*
-             * Запускаем моделирование.
-             */
             simulation.start();
 
-            /*
-             * Выводим время работы программы.
-             */
             outputArea.appendText(
                     "\nВремя работы программы: "
                             + String.format(
@@ -320,9 +280,6 @@ public class MainController {
                             + " секунд\n"
             );
 
-            /*
-             * Фактическое количество выполненных тактов.
-             */
             outputArea.appendText(
                     "Выполнено тактов: "
                             + simulation.getTotalTacts()
@@ -330,7 +287,6 @@ public class MainController {
             );
 
         } catch (Exception e) {
-
             showInformation(
                     "Ошибка",
                     "Не удалось запустить симуляцию:\n"
@@ -341,16 +297,11 @@ public class MainController {
         }
     }
 
-    /**
-     * Вывод информации о пакете.
-     */
     private void updatePackageInfo(
             TaskPackageType packet
     ) {
-
         if (packet == null ||
                 packet.getTasksCount() == 0) {
-
             packageTypeLabel.setText("-");
             cpuTaskCountLabel.setText("0");
             ioTaskCountLabel.setText("0");
@@ -375,14 +326,10 @@ public class MainController {
         );
     }
 
-    /**
-     * Показ информационного сообщения.
-     */
     private void showInformation(
             String title,
             String message
     ) {
-
         Alert alert = new Alert(
                 Alert.AlertType.INFORMATION
         );
