@@ -13,8 +13,6 @@ public class Task {
 
     private final int memoryRequired;
 
-    private final int arrivalTime;
-
     private TaskState state;
 
     private int executionTime;
@@ -30,13 +28,11 @@ public class Task {
     public Task(
             int id,
             TaskType type,
-            int memoryRequired,
-            int arrivalTime
+            int memoryRequired
     ) {
         this.id = id;
         this.type = type;
         this.memoryRequired = memoryRequired;
-        this.arrivalTime = arrivalTime;
 
         this.state = TaskState.WAITING;
 

@@ -124,8 +124,7 @@ public class TaskPackageType {
             tasks.add(new Task(
                     taskNode.path("num").asInt(),
                     parseTaskType(taskNode.path("type").asText()),
-                    taskNode.path("memory").asInt(),
-                    0
+                    taskNode.path("memory").asInt()
             ));
         }
         return tasks;

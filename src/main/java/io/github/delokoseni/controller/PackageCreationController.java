@@ -210,7 +210,7 @@ public class PackageCreationController {
     }
 
     private Task createTask(int number, TaskType type, int memory) {
-        return new Task(number, type, memory, 0);
+        return new Task(number, type, memory);
     }
 
     private void refreshTable() {

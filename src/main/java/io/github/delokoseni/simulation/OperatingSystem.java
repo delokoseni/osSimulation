@@ -9,9 +9,7 @@ import io.github.delokoseni.model.TaskType;
 import lombok.Getter;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Consumer;
 
 @Getter
@@ -39,10 +37,6 @@ public class OperatingSystem {
 
     private Consumer<String> outputCallback;
 
-    private Map<String, Object> history;
-
-    private Map<String, Integer> cpuStateCounts;
-
     private final List<SimulationSnapshot> snapshots = new ArrayList<>();
 
     public OperatingSystem(
@@ -64,7 +58,16 @@ public class OperatingSystem {
 
         this.ram = ram;
         this.maxBlocksCount = maxBlocksCount;
-        this.packet = packet;
+        this.packet = new TaskPackage(
+                packet.getTasks()
+                        .stream()
+                        .map(task -> new Task(
+                                task.getId(),
+                                task.getType(),
+                                task.getMemoryRequired()
+                        ))
+                        .toList()
+        );
 
         this.memoryBlocks = new ArrayList<>(
                 maxBlocksCount
@@ -74,9 +77,7 @@ public class OperatingSystem {
             memoryBlocks.add(null);
         }
 
-        this.waitQueue = new ArrayList<>(
-                packet.getTasks()
-        );
+        this.waitQueue = new ArrayList<>(this.packet.getTasks());
 
         this.readyQueue = new ArrayList<>();
 
@@ -87,98 +88,6 @@ public class OperatingSystem {
         this.cpu = new Cpu();
 
         this.currentTact = 0;
-
-        initializeHistory();
-        initializeCpuStateCounts();
-    }
-
-    private void initializeHistory() {
-        history = new HashMap<>();
-
-        history.put(
-                "tacts",
-                new ArrayList<Integer>()
-        );
-
-        history.put(
-                "memory_blocks_used",
-                new ArrayList<Integer>()
-        );
-
-        history.put(
-                "cpu_states",
-                new ArrayList<String>()
-        );
-
-        Map<String, List<Integer>> taskStates =
-                new HashMap<>();
-
-        taskStates.put(
-                "WAIT",
-                new ArrayList<>()
-        );
-
-        taskStates.put(
-                "RUN",
-                new ArrayList<>()
-        );
-
-        taskStates.put(
-                "READY",
-                new ArrayList<>()
-        );
-
-        history.put(
-                "task_states",
-                taskStates
-        );
-
-        history.put(
-                "memory_usage",
-                new ArrayList<Double>()
-        );
-
-        Map<String, Integer> taskTypes =
-                new HashMap<>();
-
-        taskTypes.put(
-                "MATH",
-                packet.getMathTasks()
-        );
-
-        taskTypes.put(
-                "INOUT",
-                packet.getInOutTasks()
-        );
-
-        history.put(
-                "task_types",
-                taskTypes
-        );
-    }
-
-    private void initializeCpuStateCounts() {
-        cpuStateCounts = new HashMap<>();
-
-        cpuStateCounts.put(
-                "ПРОСТОЙ",
-                0
-        );
-
-        cpuStateCounts.put(
-                "ВЫПОЛНЕНИЕ ВЫЧИСЛЕНИЙ",
-                0
-        );
-
-        cpuStateCounts.put(
-                "ОЖИДАНИЕ ЗАВЕРШЕНИЯ ВВОДА/ВЫВОДА",
-                0
-        );
-
-        cpuStateCounts.put(
-                "ПЕРЕГРУЗКА",
-                0
-        );
     }
 
     public void changeMemoryBlocksCount(
@@ -555,17 +464,6 @@ public class OperatingSystem {
                     break;
             }
         }
-
-        String currentState =
-                cpu.getState()
-                        .getDisplayName();
-
-        if (cpuStateCounts.containsKey(currentState)) {
-            cpuStateCounts.put(
-                    currentState,
-                    cpuStateCounts.get(currentState) + 1
-            );
-        }
     }
 
     private void checkOverload() {
@@ -599,119 +497,24 @@ public class OperatingSystem {
         }
     }
 
-    @SuppressWarnings("unchecked")
-    private void collectStatistics() {
-        int usedBlocks =
-                countUsedMemoryBlocks();
-
-        ((List<Integer>) history.get(
-                "memory_blocks_used"
-        )).add(usedBlocks);
-
-        ((List<String>) history.get(
-                "cpu_states"
-        )).add(
-                cpu.getState()
-                        .getDisplayName()
-        );
-
-        int waitCount =
-                waitQueue.size();
-
-        int runCount = 0;
-
-        for (Task task : runningTasks) {
-            if (
-                    task.getState()
-                            == TaskState.RUNNING
-            ) {
-                runCount++;
-            }
-        }
-
-        int readyCount =
-                readyQueue.size();
-
-        Map<String, List<Integer>> taskStates =
-                (Map<String, List<Integer>>)
-                        history.get("task_states");
-
-        taskStates.get("WAIT").add(waitCount);
-        taskStates.get("RUN").add(runCount);
-        taskStates.get("READY").add(readyCount);
-
-        double usedMemoryPercent =
-                maxBlocksCount == 0
-                        ? 0
-                        : (
-                        (double) usedBlocks
-                                / maxBlocksCount
-                                * 100
-                );
-
-        double freeMemoryPercent =
-                Math.max(
-                        0,
-                        100 - usedMemoryPercent
-                );
-
-        ((List<Double>) history.get(
-                "memory_usage"
-        )).add(freeMemoryPercent);
-
-        ((List<Integer>) history.get(
-                "tacts"
-        )).add(currentTact);
-
+    private void recordSnapshot(TactActivity activity) {
         List<SimulationSnapshot.TaskProgress> taskProgress =
                 packet.getTasks()
                         .stream()
                         .map(task -> new SimulationSnapshot.TaskProgress(
                                 task.getId(),
                                 task.getType(),
-                                task.getState(),
-                                task.getArrivalTime()
+                                task.getState()
                         ))
                         .toList();
 
-        int mathTasksRunning = (int) taskProgress.stream()
-                .filter(task ->
-                        task.type() == TaskType.CPU_BOUND
-                                && task.state() == TaskState.RUNNING
-                )
-                .count();
-
-        int ioTasksRunning = (int) taskProgress.stream()
-                .filter(task ->
-                        task.type() == TaskType.IO_BOUND
-                                && task.state() == TaskState.RUNNING
-                )
-                .count();
-        int completedTasks = (int) taskProgress.stream()
-                .filter(task -> task.state() == TaskState.READY)
-                .count();
-        int waitingTasks = (int) taskProgress.stream()
-                .filter(task -> task.state() == TaskState.WAITING)
-                .count();
-
         snapshots.add(new SimulationSnapshot(
                 currentTact,
-                cpu.getState(),
-                usedBlocks,
-                maxBlocksCount,
-                mathTasksRunning,
-                ioTasksRunning,
-                completedTasks,
-                waitingTasks,
-                mathTasksRunning + ioTasksRunning,
+                activity.cpuActive(),
+                activity.ioActive(),
+                activity.loadUnloadActive(),
                 taskProgress
         ));
-    }
-
-    public Map<String, Integer> getCpuStateCounts() {
-        return new HashMap<>(
-                cpuStateCounts
-        );
     }
 
     public List<SimulationSnapshot> getSnapshots() {
@@ -742,8 +545,11 @@ public class OperatingSystem {
                         + maxBlocksCount
         );
 
+        int waitingTasksBeforeAdjustment = waitQueue.size();
         boolean memoryAdjusted =
                 checkAndAdjustMemoryBlocks();
+        boolean tasksEvicted =
+                waitQueue.size() > waitingTasksBeforeAdjustment;
 
         if (memoryAdjusted) {
             usedBlocks =
@@ -801,11 +607,13 @@ public class OperatingSystem {
             );
         }
 
-        executeTasks();
+        boolean loadUnloadActive =
+                tasksEvicted || memoryFreed || memoryLoaded;
+        TactActivity activity = executeTasks(loadUnloadActive);
 
         manageCpuStates();
 
-        collectStatistics();
+        recordSnapshot(activity);
 
         output(
                 "Финальное состояние процессора: "
@@ -910,7 +718,10 @@ public class OperatingSystem {
         return loaded;
     }
 
-    private void executeTasks() {
+    private TactActivity executeTasks(boolean loadUnloadActive) {
+        boolean cpuActive = false;
+        boolean ioActive = false;
+
         for (
                 int i = 0;
                 i < memoryBlocks.size();
@@ -954,6 +765,12 @@ public class OperatingSystem {
                     task.getState()
                             == TaskState.RUNNING
             ) {
+                if (task.getType() == TaskType.CPU_BOUND) {
+                    cpuActive = true;
+                } else {
+                    ioActive = true;
+                }
+
                 boolean completed =
                         task.execute();
 
@@ -982,6 +799,15 @@ public class OperatingSystem {
                 }
             }
         }
+
+        return new TactActivity(cpuActive, ioActive, loadUnloadActive);
+    }
+
+    private record TactActivity(
+            boolean cpuActive,
+            boolean ioActive,
+            boolean loadUnloadActive
+    ) {
     }
 
     public boolean isSimulationFinished() {
@@ -1043,9 +869,6 @@ public class OperatingSystem {
         cpu.setCurrentTask(null);
 
         currentTact = 0;
-
-        initializeHistory();
-        initializeCpuStateCounts();
 
         for (Task task : packet.getTasks()) {
             task.setState(

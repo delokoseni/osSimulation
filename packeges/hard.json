@@ -1,0 +1,14 @@
+{
+  "tasks": [
+    { "num": 1, "type": "MATH",   "memory": 720 },
+    { "num": 2, "type": "INOUT", "memory": 650 },
+    { "num": 3, "type": "MATH",   "memory": 780 },
+    { "num": 4, "type": "INOUT", "memory": 590 },
+    { "num": 5, "type": "MATH",   "memory": 710 },
+    { "num": 6, "type": "INOUT", "memory": 680 },
+    { "num": 7, "type": "MATH",   "memory": 760 },
+    { "num": 8, "type": "INOUT", "memory": 620 },
+    { "num": 9, "type": "MATH",   "memory": 730 },
+    { "num": 10, "type": "INOUT", "memory": 650 }
+  ]
+}

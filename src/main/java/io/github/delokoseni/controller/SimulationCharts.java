@@ -1,20 +1,12 @@
 package io.github.delokoseni.controller;
 
-import io.github.delokoseni.model.CpuState;
 import io.github.delokoseni.model.Task;
-import io.github.delokoseni.model.TaskPackage;
 import io.github.delokoseni.model.TaskState;
 import io.github.delokoseni.model.TaskType;
-import io.github.delokoseni.simulation.Simulation;
 import io.github.delokoseni.simulation.SimulationSnapshot;
 import javafx.scene.Node;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.chart.BarChart;
-import javafx.scene.chart.CategoryAxis;
-import javafx.scene.chart.LineChart;
-import javafx.scene.chart.NumberAxis;
-import javafx.scene.chart.XYChart;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.HBox;
@@ -27,12 +19,11 @@ import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import javafx.scene.text.TextAlignment;
 
-import java.util.ArrayList;
-import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
-import java.util.TreeSet;
+import java.util.function.Predicate;
 
 final class SimulationCharts {
 
@@ -41,8 +32,9 @@ final class SimulationCharts {
     private static final Color IO_COLOR = Color.web("#F59E0B");
     private static final Color COMPLETED_COLOR = Color.web("#22C55E");
     private static final Color IDLE_COLOR = Color.web("#94A3B8");
-    private static final Color IO_WAIT_COLOR = Color.web("#F59E0B");
-    private static final Color OVERLOADED_COLOR = Color.web("#EF4444");
+    private static final Color CPU_ACTIVE_COLOR = Color.web("#22C55E");
+    private static final Color IO_ACTIVE_COLOR = Color.web("#3B82F6");
+    private static final Color LOAD_UNLOAD_COLOR = Color.web("#A855F7");
 
     private SimulationCharts() {
     }
@@ -50,12 +42,7 @@ final class SimulationCharts {
     static void initialize(StackPane... slots) {
         String[] messages = {
                 "Диаграмма состояний задач появится после запуска",
-                "Состояние процессора по тактам",
-                "Активность I/O-задач по тактам",
-                "Занятость разделов памяти",
-                "Ход выполнения пакета",
-                "Среднее время оборота задач",
-                "Производительность при разном составе пакета"
+                "Загрузка CPU и I/O по тактам"
         };
 
         for (int index = 0; index < slots.length; index++) {
@@ -65,110 +52,19 @@ final class SimulationCharts {
         }
     }
 
-    static List<RatioPerformance> runRatioStudy(
-            TaskPackage sourcePackage,
-            int maxBlocksCount,
-            int ram,
-            int maxTacts
-    ) {
-        List<Task> sourceTasks = sourcePackage.getTasks();
-        if (sourceTasks.isEmpty()) {
-            return List.of();
-        }
-
-        int taskCount = sourceTasks.size();
-        TreeSet<Integer> mathTaskCounts = new TreeSet<>();
-        for (int quarter = 0; quarter <= 4; quarter++) {
-            mathTaskCounts.add((int) Math.round(taskCount * quarter / 4.0));
-        }
-
-        List<RatioPerformance> results = new ArrayList<>();
-        for (int mathTaskCount : mathTaskCounts) {
-            List<Task> tasks = new ArrayList<>(taskCount);
-            for (int index = 0; index < taskCount; index++) {
-                boolean isMath = ((long) (index + 1) * mathTaskCount) / taskCount
-                        > ((long) index * mathTaskCount) / taskCount;
-                tasks.add(new Task(
-                        index + 1,
-                        isMath ? TaskType.CPU_BOUND : TaskType.IO_BOUND,
-                        sourceTasks.get(index).getMemoryRequired(),
-                        0
-                ));
-            }
-
-            Simulation trial = new Simulation(
-                    new TaskPackage(tasks),
-                    maxBlocksCount,
-                    ram,
-                    maxTacts
-            );
-            trial.start();
-
-            List<SimulationSnapshot> snapshots =
-                    trial.getOperatingSystem().getSnapshots();
-            int completedTasks = snapshots.isEmpty()
-                    ? 0
-                    : snapshots.get(snapshots.size() - 1).completedTasks();
-            double throughput = trial.getTotalTacts() == 0
-                    ? 0
-                    : (double) completedTasks / trial.getTotalTacts();
-
-            results.add(new RatioPerformance(
-                    100.0 * mathTaskCount / taskCount,
-                    throughput
-            ));
-        }
-
-        return List.copyOf(results);
-    }
-
     static void render(
             StackPane ganttSlot,
-            StackPane cpuSlot,
-            StackPane ioSlot,
-            StackPane memorySlot,
-            StackPane completionSlot,
-            StackPane turnaroundSlot,
-            StackPane ratioSlot,
+            StackPane resourceTimelineSlot,
             List<SimulationSnapshot> snapshots,
-            List<Task> tasks,
-            List<RatioPerformance> ratioPerformance
+            List<Task> tasks
     ) {
         if (snapshots.isEmpty()) {
             initialize(
                     ganttSlot,
-                    cpuSlot,
-                    ioSlot,
-                    memorySlot,
-                    completionSlot,
-                    turnaroundSlot,
-                    ratioSlot
+                    resourceTimelineSlot
             );
             return;
         }
-
-        int totalTasks = tasks.size();
-        SimulationSnapshot last = snapshots.get(snapshots.size() - 1);
-        double throughput =
-                (double) last.completedTasks() / snapshots.size();
-        double cpuIdlePercent = 100.0 * snapshots.stream()
-                .filter(snapshot ->
-                        snapshot.cpuState() == CpuState.IDLE
-                                || snapshot.cpuState() == CpuState.IO_WAIT
-                )
-                .count() / snapshots.size();
-        double cpuBusyPercent = 100.0 * snapshots.stream()
-                .filter(snapshot -> snapshot.cpuState() == CpuState.EXECUTING)
-                .count() / snapshots.size();
-        long cpuIdleTicks = snapshots.stream()
-                .filter(snapshot ->
-                        snapshot.cpuState() == CpuState.IDLE
-                                || snapshot.cpuState() == CpuState.IO_WAIT
-                )
-                .count();
-        double overloadedPercent = 100.0 * snapshots.stream()
-                .filter(snapshot -> snapshot.cpuState() == CpuState.OVERLOADED)
-                .count() / snapshots.size();
 
         setCard(
                 ganttSlot,
@@ -183,117 +79,16 @@ final class SimulationCharts {
                 )
         );
         setCard(
-                cpuSlot,
-                "Состояние CPU по тактам",
-                String.format(
-                        "Вычисления: %.1f%% · простой, включая ожидание I/O: %d/%d тактов (%.1f%%) · перегрузка: %.1f%%",
-                        cpuBusyPercent,
-                        cpuIdleTicks,
-                        snapshots.size(),
-                        cpuIdlePercent,
-                        overloadedPercent
-                ),
-                cpuTimeline(snapshots),
+                resourceTimelineSlot,
+                "Загрузка CPU и I/O по тактам",
+                "Фактические операции и управление жизненным циклом задач по тактам",
+                resourceTimeline(snapshots),
                 legend(
-                        new LegendEntry("Вычисления", MATH_COLOR),
-                        new LegendEntry("Ожидание I/O", IO_WAIT_COLOR),
-                        new LegendEntry("Простой", IDLE_COLOR),
-                        new LegendEntry("Перегрузка", OVERLOADED_COLOR)
+                        new LegendEntry("Вычисления CPU (MATH)", CPU_ACTIVE_COLOR),
+                        new LegendEntry("Операция I/O", IO_ACTIVE_COLOR),
+                        new LegendEntry("Загрузка/выгрузка", LOAD_UNLOAD_COLOR),
+                        new LegendEntry("Простой", IDLE_COLOR)
                 )
-        );
-
-        LineChart<Number, Number> ioChart =
-                lineChart("Такт", "Активные I/O-задачи", false);
-        XYChart.Series<Number, Number> ioSeries =
-                new XYChart.Series<>();
-        ioSeries.setName("I/O-bound");
-        for (SimulationSnapshot snapshot : snapshots) {
-            ioSeries.getData().add(new XYChart.Data<>(
-                    snapshot.tact(),
-                    snapshot.ioTasksRunning()
-            ));
-        }
-        ioChart.getData().add(ioSeries);
-        setCard(
-                ioSlot,
-                "Активность I/O-задач",
-                "Число выполняющихся I/O-bound задач на каждом такте",
-                ioChart,
-                null
-        );
-
-        LineChart<Number, Number> memoryChart =
-                lineChart("Такт", "Число разделов", true);
-        XYChart.Series<Number, Number> usedSeries =
-                new XYChart.Series<>();
-        usedSeries.setName("Занято");
-        XYChart.Series<Number, Number> capacitySeries =
-                new XYChart.Series<>();
-        capacitySeries.setName("Доступно");
-        for (SimulationSnapshot snapshot : snapshots) {
-            usedSeries.getData().add(new XYChart.Data<>(
-                    snapshot.tact(),
-                    snapshot.usedBlocks()
-            ));
-            capacitySeries.getData().add(new XYChart.Data<>(
-                    snapshot.tact(),
-                    snapshot.maxBlocksCount()
-            ));
-        }
-        memoryChart.getData().addAll(usedSeries, capacitySeries);
-        setCard(
-                memorySlot,
-                "Использование разделов памяти",
-                "Сравнение занятых разделов с текущей емкостью",
-                memoryChart,
-                null
-        );
-
-        LineChart<Number, Number> completionChart =
-                lineChart("Такт", "Число задач", true);
-        XYChart.Series<Number, Number> completedSeries =
-                new XYChart.Series<>();
-        completedSeries.setName("Завершено");
-        XYChart.Series<Number, Number> remainingSeries =
-                new XYChart.Series<>();
-        remainingSeries.setName("Осталось");
-        for (SimulationSnapshot snapshot : snapshots) {
-            completedSeries.getData().add(new XYChart.Data<>(
-                    snapshot.tact(),
-                    snapshot.completedTasks()
-            ));
-            remainingSeries.getData().add(new XYChart.Data<>(
-                    snapshot.tact(),
-                    totalTasks - snapshot.completedTasks()
-            ));
-        }
-        completionChart.getData().addAll(completedSeries, remainingSeries);
-        setCard(
-                completionSlot,
-                "Завершение пакета",
-                String.format(
-                        "Производительность: %.2f задач/такт · выполнено %d из %d",
-                        throughput,
-                        last.completedTasks(),
-                        totalTasks
-                ),
-                completionChart,
-                null
-        );
-
-        setCard(
-                turnaroundSlot,
-                "Среднее время оборота",
-                "От поступления пакета до завершения; незавершенные задачи не учитываются",
-                turnaroundChart(snapshots, tasks),
-                null
-        );
-        setCard(
-                ratioSlot,
-                "Производительность при разном составе пакета",
-                "Повторные запуски той же модели при разных долях MATH (50/50 — сбалансированный пакет)",
-                ratioChart(ratioPerformance),
-                null
         );
     }
 
@@ -411,21 +206,77 @@ final class SimulationCharts {
         };
     }
 
-    private static Node cpuTimeline(List<SimulationSnapshot> snapshots) {
+    private static Node resourceTimeline(List<SimulationSnapshot> snapshots) {
         ResizableCanvas canvas = new ResizableCanvas(
-                85,
-                (graphics, width, height) -> drawCpuTimeline(
+                105,
+                (graphics, width, height) -> drawResourceTimeline(
                         graphics,
                         width,
                         height,
                         snapshots
                 )
         );
+        double usefulCpuUtilization = utilizationPercent(
+                snapshots,
+                SimulationSnapshot::cpuActive
+        );
+        // Lifecycle work and computation can occur in the same tact; count elapsed tacts once.
+        double cpuTotalUtilization = utilizationPercent(
+                snapshots,
+                snapshot -> snapshot.cpuActive() || snapshot.loadUnloadActive()
+        );
+        double ioUtilization = utilizationPercent(
+                snapshots,
+                SimulationSnapshot::ioActive
+        );
+        Label cpuUtilizationLabel = utilizationLabel(
+                "Useful CPU",
+                usefulCpuUtilization
+        );
+        Label cpuTotalUtilizationLabel = utilizationLabel(
+                "Total CPU",
+                cpuTotalUtilization
+        );
+        Label ioUtilizationLabel = utilizationLabel(
+                "I/O",
+                ioUtilization
+        );
+
+        VBox timeline = new VBox(
+                2,
+                canvas,
+                cpuUtilizationLabel,
+                cpuTotalUtilizationLabel,
+                ioUtilizationLabel
+        );
+        timeline.setMinSize(0, 0);
+        timeline.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
         VBox.setVgrow(canvas, Priority.ALWAYS);
-        return canvas;
+        return timeline;
     }
 
-    private static void drawCpuTimeline(
+    private static double utilizationPercent(
+            List<SimulationSnapshot> snapshots,
+            Predicate<SimulationSnapshot> isBusy
+    ) {
+        // Each snapshot is one tact; divide busy tacts by all simulated tacts.
+        return 100.0 * snapshots.stream()
+                .filter(isBusy)
+                .count() / snapshots.size();
+    }
+
+    private static Label utilizationLabel(String resource, double utilization) {
+        Label label = new Label(String.format(
+                Locale.ROOT,
+                "%s utilization: %.1f%%",
+                resource,
+                utilization
+        ));
+        label.getStyleClass().add("chart-subtitle");
+        return label;
+    }
+
+    private static void drawResourceTimeline(
             GraphicsContext graphics,
             double width,
             double height,
@@ -433,132 +284,82 @@ final class SimulationCharts {
     ) {
         graphics.setFill(Color.WHITE);
         graphics.fillRect(0, 0, width, height);
-        double left = 8;
+        double left = 38;
         double right = 8;
-        double top = 16;
-        double trackHeight = 28;
+        double firstTrackTop = 12;
+        double trackHeight = 22;
+        double trackGap = 20;
         double plotWidth = Math.max(1, width - left - right);
         double cellWidth = plotWidth / snapshots.size();
+        double secondTrackTop = firstTrackTop + trackHeight + trackGap;
+
+        graphics.setFont(Font.font(9));
+        graphics.setTextAlign(TextAlignment.RIGHT);
+        graphics.setFill(Color.web("#344054"));
+        graphics.fillText("CPU", left - 6, firstTrackTop + trackHeight * 0.68);
+        graphics.fillText("I/O", left - 6, secondTrackTop + trackHeight * 0.68);
 
         for (int index = 0; index < snapshots.size(); index++) {
-            graphics.setFill(cpuStateColor(snapshots.get(index).cpuState()));
-            graphics.fillRect(
-                    left + index * cellWidth,
-                    top,
-                    Math.max(1, cellWidth),
-                    trackHeight
-            );
+            SimulationSnapshot snapshot = snapshots.get(index);
+            double x = left + index * cellWidth;
+            graphics.setFill(colorFor(cpuTimelineState(snapshot)));
+            graphics.fillRect(x, firstTrackTop, cellWidth, trackHeight);
+            graphics.setFill(colorFor(ioTimelineState(snapshot)));
+            graphics.fillRect(x, secondTrackTop, cellWidth, trackHeight);
         }
 
         graphics.setStroke(Color.web("#667085"));
         graphics.setLineWidth(0.7);
-        graphics.strokeRect(left, top, plotWidth, trackHeight);
+        graphics.strokeRect(left, firstTrackTop, plotWidth, trackHeight);
+        graphics.strokeRect(left, secondTrackTop, plotWidth, trackHeight);
 
         graphics.setFill(Color.web("#475467"));
-        graphics.setFont(Font.font(9));
         graphics.setTextAlign(TextAlignment.CENTER);
         int tickCount = snapshots.size();
         int labelStep = Math.max(1, (int) Math.ceil(tickCount / 6.0));
         for (int tact = 1; tact <= tickCount; tact += labelStep) {
             double x = left + (tact - 0.5) * cellWidth;
-            graphics.fillText(Integer.toString(tact), x, top + trackHeight + 15);
+            graphics.fillText(
+                    Integer.toString(snapshots.get(tact - 1).tact()),
+                    x,
+                    secondTrackTop + trackHeight + 15
+            );
         }
         if (tickCount > 1 && (tickCount - 1) % labelStep != 0) {
             graphics.fillText(
-                    Integer.toString(tickCount),
+                    Integer.toString(snapshots.get(tickCount - 1).tact()),
                     left + (tickCount - 0.5) * cellWidth,
-                    top + trackHeight + 15
+                    secondTrackTop + trackHeight + 15
             );
         }
     }
 
-    private static Color cpuStateColor(CpuState state) {
+    private static TimelineState cpuTimelineState(
+            SimulationSnapshot snapshot
+    ) {
+        // Execution is the tact's visible CPU state when it coincides with lifecycle events.
+        if (snapshot.cpuActive()) {
+            return TimelineState.MATH;
+        }
+        if (snapshot.loadUnloadActive()) {
+            return TimelineState.LOAD_UNLOAD;
+        }
+        return TimelineState.IDLE;
+    }
+
+    private static TimelineState ioTimelineState(
+            SimulationSnapshot snapshot
+    ) {
+        return snapshot.ioActive() ? TimelineState.IO : TimelineState.IDLE;
+    }
+
+    private static Color colorFor(TimelineState state) {
         return switch (state) {
+            case MATH -> CPU_ACTIVE_COLOR;
+            case IO -> IO_ACTIVE_COLOR;
+            case LOAD_UNLOAD -> LOAD_UNLOAD_COLOR;
             case IDLE -> IDLE_COLOR;
-            case IO_WAIT -> IO_WAIT_COLOR;
-            case EXECUTING -> MATH_COLOR;
-            case OVERLOADED -> OVERLOADED_COLOR;
         };
-    }
-
-    private static LineChart<Number, Number> lineChart(
-            String xLabel,
-            String yLabel,
-            boolean legend
-    ) {
-        NumberAxis xAxis = new NumberAxis();
-        xAxis.setLabel(xLabel);
-        xAxis.setForceZeroInRange(false);
-        NumberAxis yAxis = new NumberAxis();
-        yAxis.setLabel(yLabel);
-        yAxis.setForceZeroInRange(true);
-
-        LineChart<Number, Number> chart = new LineChart<>(xAxis, yAxis);
-        chart.setAnimated(false);
-        chart.setCreateSymbols(false);
-        chart.setLegendVisible(legend);
-        chart.setMinHeight(160);
-        chart.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
-        VBox.setVgrow(chart, Priority.ALWAYS);
-        return chart;
-    }
-
-    private static Node turnaroundChart(
-            List<SimulationSnapshot> snapshots,
-            List<Task> tasks
-    ) {
-        Map<Integer, Integer> completionTacts = new HashMap<>();
-        for (SimulationSnapshot snapshot : snapshots) {
-            for (SimulationSnapshot.TaskProgress task : snapshot.taskProgress()) {
-                if (task.state() == TaskState.READY) {
-                    completionTacts.putIfAbsent(task.id(), snapshot.tact());
-                }
-            }
-        }
-
-        Map<TaskType, List<Integer>> turnaroundByType =
-                new EnumMap<>(TaskType.class);
-        for (Task task : tasks) {
-            Integer completionTact = completionTacts.get(task.getId());
-            if (completionTact != null) {
-                turnaroundByType
-                        .computeIfAbsent(task.getType(), unused -> new ArrayList<>())
-                        .add(Math.max(0, completionTact - task.getArrivalTime()));
-            }
-        }
-
-        CategoryAxis xAxis = new CategoryAxis();
-        xAxis.setLabel("Тип задачи");
-        NumberAxis yAxis = new NumberAxis();
-        yAxis.setLabel("Среднее время (такты)");
-        BarChart<String, Number> chart = new BarChart<>(xAxis, yAxis);
-        chart.setAnimated(false);
-        chart.setLegendVisible(false);
-        chart.setMinHeight(160);
-        chart.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
-        VBox.setVgrow(chart, Priority.ALWAYS);
-
-        XYChart.Series<String, Number> series = new XYChart.Series<>();
-        addAverageTurnaround(series, turnaroundByType, TaskType.CPU_BOUND, "MATH");
-        addAverageTurnaround(series, turnaroundByType, TaskType.IO_BOUND, "I/O");
-        chart.getData().add(series);
-        return chart;
-    }
-
-    private static void addAverageTurnaround(
-            XYChart.Series<String, Number> series,
-            Map<TaskType, List<Integer>> turnaroundByType,
-            TaskType type,
-            String label
-    ) {
-        List<Integer> values = turnaroundByType.get(type);
-        if (values != null && !values.isEmpty()) {
-            double average = values.stream()
-                    .mapToInt(Integer::intValue)
-                    .average()
-                    .orElse(0);
-            series.getData().add(new XYChart.Data<>(label, average));
-        }
     }
 
     private static void setCard(
@@ -599,38 +400,14 @@ final class SimulationCharts {
         return legend;
     }
 
-    private static LineChart<Number, Number> ratioChart(
-            List<RatioPerformance> ratios
-    ) {
-        NumberAxis xAxis = new NumberAxis(0, 100, 25);
-        xAxis.setLabel("MATH-задачи в пакете (%)");
-        NumberAxis yAxis = new NumberAxis();
-        yAxis.setLabel("Задач/такт");
-
-        LineChart<Number, Number> chart = new LineChart<>(xAxis, yAxis);
-        chart.setAnimated(false);
-        chart.setCreateSymbols(true);
-        chart.setLegendVisible(false);
-        chart.setMinHeight(160);
-        chart.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
-        VBox.setVgrow(chart, Priority.ALWAYS);
-
-        XYChart.Series<Number, Number> series = new XYChart.Series<>();
-        series.setName("Производительность");
-        for (RatioPerformance ratio : ratios) {
-            series.getData().add(new XYChart.Data<>(
-                    ratio.mathTaskPercent(),
-                    ratio.throughput()
-            ));
-        }
-        chart.getData().add(series);
-        return chart;
-    }
-
     private record LegendEntry(String label, Color color) {
     }
 
-    record RatioPerformance(double mathTaskPercent, double throughput) {
+    private enum TimelineState {
+        MATH,
+        IO,
+        LOAD_UNLOAD,
+        IDLE
     }
 
     private static final class ResizableCanvas extends Region {

@@ -51,22 +51,7 @@ public class MainController {
     private StackPane ganttChartSlot;
 
     @FXML
-    private StackPane cpuChartSlot;
-
-    @FXML
-    private StackPane ioChartSlot;
-
-    @FXML
-    private StackPane memoryChartSlot;
-
-    @FXML
-    private StackPane completionChartSlot;
-
-    @FXML
-    private StackPane turnaroundChartSlot;
-
-    @FXML
-    private StackPane ratioChartSlot;
+    private StackPane resourceTimelineSlot;
 
     private TaskPackage currentPackage;
 
@@ -97,12 +82,7 @@ public class MainController {
         ioTaskCountLabel.setText("0");
         SimulationCharts.initialize(
                 ganttChartSlot,
-                cpuChartSlot,
-                ioChartSlot,
-                memoryChartSlot,
-                completionChartSlot,
-                turnaroundChartSlot,
-                ratioChartSlot
+                resourceTimelineSlot
         );
     }
 
@@ -250,12 +230,7 @@ public class MainController {
         outputArea.clear();
         SimulationCharts.initialize(
                 ganttChartSlot,
-                cpuChartSlot,
-                ioChartSlot,
-                memoryChartSlot,
-                completionChartSlot,
-                turnaroundChartSlot,
-                ratioChartSlot
+                resourceTimelineSlot
         );
 
         outputArea.appendText(
@@ -326,23 +301,11 @@ public class MainController {
                             + "\n"
             );
 
-            var ratioPerformance = SimulationCharts.runRatioStudy(
-                    currentPackage,
-                    blocks,
-                    ram,
-                    tacts
-            );
             SimulationCharts.render(
                     ganttChartSlot,
-                    cpuChartSlot,
-                    ioChartSlot,
-                    memoryChartSlot,
-                    completionChartSlot,
-                    turnaroundChartSlot,
-                    ratioChartSlot,
+                    resourceTimelineSlot,
                     simulation.getOperatingSystem().getSnapshots(),
-                    currentPackage.getTasks(),
-                    ratioPerformance
+                    simulation.getOperatingSystem().getPacket().getTasks()
             );
 
         } catch (Exception e) {
