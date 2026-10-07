@@ -545,11 +545,11 @@ public class OperatingSystem {
                         + maxBlocksCount
         );
 
-        int waitingTasksBeforeAdjustment = waitQueue.size();
-        boolean memoryAdjusted =
-                checkAndAdjustMemoryBlocks();
-        boolean tasksEvicted =
-                waitQueue.size() > waitingTasksBeforeAdjustment;
+        // Автоподстройка количества разделов убрана:
+        // число разделов — фиксированный параметр модели
+        // (классическое мультипрограммирование с фиксированными разделами).
+        boolean memoryAdjusted = false;
+        boolean tasksEvicted = false;
 
         if (memoryAdjusted) {
             usedBlocks =
@@ -609,6 +609,7 @@ public class OperatingSystem {
 
         boolean loadUnloadActive =
                 tasksEvicted || memoryFreed || memoryLoaded;
+
         TactActivity activity = executeTasks(loadUnloadActive);
 
         manageCpuStates();
